@@ -3,7 +3,7 @@
 #include <conio.h>
 #include <time.h>
 #include <string.h>
-
+//
 typedef struct T_Arquivo{
 	int trade,modo,key;
 	char Jogo[3][3];
