@@ -5,16 +5,16 @@
 #include <string.h>
 //
 typedef struct T_Arquivo{
-	int trade,modo,key;
-	char Jogo[3][3];
+	int trade,modo;
+	char Jogo[3][3],nome[25];
                         }Arquivo;
-void New_Game(FILE *arq);//OK
-void Continue_Game(FILE *arq);//Falta
+void New_Game();//OK
+void Continue_Game();//OK
 void Desafio_Maquina(FILE *arq,int trade,int modo,char preenchimento);//OK
-void PvP(FILE *arq,int *trade,char preenchimento);//OK
+void PvP(FILE *arq,int trade,char preenchimento);//OK
 void Printar_Jogo(char Jogo[3][3]);//Falta
 int Win_Cond(char Jogo[3][3]); //OK
-void Salvar_Jogo(FILE *arq,int trade,int modo,char Jogo[3][3]);// Falta
+void Salvar_Jogo(int trade,int modo,char Jogo[3][3]);// OK
 void Modo_Facil(char Jogo[3][3]);//Falta
 void Modo_Medio(char Jogo[3][3]);//Falta
 void Modo_Dificil(char Jogo[3][3]);//Falta
@@ -22,14 +22,7 @@ void Modo_Dificil(char Jogo[3][3]);//Falta
 
 int main(){
 	char op;
-	FILE *arq;
-
-
 	do{
-			arq=fopen("Salve","r+b");
-	if(arq==NULL){
-		arq=fopen("Salve","w+b");
-	             }
 		system("cls");
 		printf("\n\t--JOGO DA VELHA--\n");
 		printf("1_Novo Jogo\n2_Continuar\n3_Sair\nOpcao: ");
@@ -39,28 +32,30 @@ int main(){
 
 	switch(op){
 	case'1':
-		New_Game(arq);
+		New_Game();
 		break;
 	case'2':
-		Continue_Game(arq);
+		Continue_Game();
 		break;
 	case'3':
 		break;
 	default:
 		printf("\nOpcao Invalida!!");
-	          }
- 	    }while(op!='3');
+	          
+	}
+	}while(op!='3');
 
 
 system("pause");
 return 0;
-           }
+           
+}
 
 
-
-void New_Game(FILE *arq){
+void New_Game(){
 	int trade,modo;
 	char op;
+
 	system("cls");
 		printf("\n\tNOVO JOGO\n");
 	do{
@@ -76,13 +71,14 @@ void New_Game(FILE *arq){
 			}while(modo!=1&&modo!=2&&modo!=3);
 			srand( (unsigned)time(NULL) );
 	        trade=rand()%2;
-			Desafio_Maquina(arq,trade,modo,'n');
+			Desafio_Maquina(NULL,trade,modo,'n');
 			return;
 			break;
 		case'2':
 			srand( (unsigned)time(NULL) );
 	        trade=rand()%2;
-			PvP(arq,&trade,'n');
+
+			PvP(NULL,trade,'n');
 			return;
 			break;
 		case'3':
@@ -109,9 +105,9 @@ void PvP(FILE *arq,int trade,char preenchimento){        //o preenchimento'n' é 
 		                }
 	                      }
 	else{
-		fseek(arq,0,0);
+		
 		fread(&Servo,sizeof(Arquivo),1,arq);
-		fseek(arq,0,0);
+		
 		for(i=0;i<3;i++){
 			for(j=0;i<3;j++){
 				Jogo[i][j]=Servo.Jogo[i][j];
@@ -156,7 +152,7 @@ void PvP(FILE *arq,int trade,char preenchimento){        //o preenchimento'n' é 
 	}
 	  }while(l!=0&&l!=1&&l!=2&&l!=19);                      //valida valor recebido
 	if(l==19){
-		Salvar_Jogo(arq,tradelocal,1,Jogo);                 //Chama o salvar se for apertado ctrl s
+		Salvar_Jogo(tradelocal,1,Jogo);                 //Chama o salvar se for apertado ctrl s
 		return;                                            //volta para o menu anterior se salvar
 	         }
 do{
@@ -182,7 +178,7 @@ do{
 	}
    }while(c!=0&&c!=1&&c!=2&&c!=19);    //valida coluna
 if(c==19){
-		Salvar_Jogo(arq,tradelocal,1,Jogo);                 //Chama o salvar se for apertado ctrl s
+		Salvar_Jogo(tradelocal,1,Jogo);                 //Chama o salvar se for apertado ctrl s
 		return;
 	         }                                     //vai para o menu anterior se for salvo
 if(Jogo[l][c]==' '){
@@ -226,35 +222,50 @@ else{
 
 
 
-void Salvar_Jogo(FILE *arq,int trade,int modo,char Jogo[3][3]){
+void Salvar_Jogo(int trade,int modo,char Jogo[3][3]){
 	Arquivo Servo;
-	int i,j,validar;
+	FILE *arq;
+	char none_sav[25];
+	int ok=0,status,i,j;
+
+
+	
+			arq=fopen("Salve","r+b");
+	if(arq==NULL){
+		arq=fopen("Salve","w+b");
+	             }
 	fseek(arq,0,0);
-	fread(&Servo,sizeof(Arquivo),1,arq);
-	if(Servo.key==1){
+	
+	do{
+		printf("\nInforme o Nome do seu Salve: ");
+		fgets(none_sav,25,stdin);
 		do{
-			printf("\nJa existe um jogo salvo deseja sobrescrevelo \n1_Sim\n2_Nao\nOpcao: ");
-			scanf("%d",&validar);
-			switch(validar){
-			case 1:fseek(arq,0,0);
+			status=fread(&Servo,sizeof(arq),1,arq);
+			if(strcmp(Servo.nome,none_sav)==0){
+				printf("\nNao e possivel salvar o jogo  o Nome ja esta sendo usado!!");
 				break;
-			case 2:fclose(arq);
-				return;
+			                        } // talvez de tempo de fazer um sobreescrever
+			else if (status == 0) {
+			if  (feof(arq) != 0){
+				ok=1;
 				break;
-			default:printf("\nOpcao invalida!!");
-				break;
-			}
-		}while(validar!=1);
-	                }
-	Servo.trade=trade;
+			                    }
+                                 
+			else
+            printf("Erro de leitura");
+            break;
+                                   }
+		  }while(1);
+	  }while(ok!=0);   //Valida se o salve nao é repetido
+	fseek(arq,0,SEEK_END);
 	Servo.modo=modo;
+	Servo.trade=trade;
 	for(i=0;i<3;i++){
 		for(j=0;j<3;j++){
 			Servo.Jogo[i][j]=Jogo[i][j];
 		                }
 	                }
-	Servo.key=key;
-	fwrite(&Servo,sizeof(Arquivo),1,arq);
+	fwrite(&Jogo,sizeof(Arquivo),1,arq);
 	fclose(arq);
                                                                       }
 
@@ -283,9 +294,9 @@ void Desafio_Maquina(FILE *arq,int trade,int modo,char preenchimento){  //Acho q
 		                }
 	                      }
 	else{
-		fseek(arq,0,0);
+		
 		fread(&Servo,sizeof(Arquivo),1,arq);
-		fseek(arq,0,0);
+		
 		for(i=0;i<3;i++){
 			for(j=0;i<3;j++){
 				Jogo[i][j]=Servo.Jogo[i][j];
@@ -328,7 +339,7 @@ void Desafio_Maquina(FILE *arq,int trade,int modo,char preenchimento){  //Acho q
 	}
 	  }while(l!=0&&l!=1&&l!=2&&l!=19);                      //valida valor recebido
 	if(l==19){
-		Salvar_Jogo(arq,tradelocal,modosav,Jogo);                 //Chama o salvar se for apertado ctrl s
+		Salvar_Jogo(tradelocal,modosav,Jogo);                 //Chama o salvar se for apertado ctrl s
 		return;                                            //volta para o menu anterior se salvar
 	         }
 do{
@@ -354,7 +365,7 @@ do{
 	}
    }while(c!=0&&c!=1&&c!=2&&c!=19);    //valida coluna
 if(c==19){
-	Salvar_Jogo(arq,tradelocal,modosav,Jogo);                 //Chama o salvar se for apertado ctrl s
+	Salvar_Jogo(tradelocal,modosav,Jogo);                 //Chama o salvar se for apertado ctrl s
 		return;
 	         }                                     //vai para o menu anterior se for salvo
 
@@ -430,6 +441,12 @@ void Modo_Facil(char Jogo[3][3]){
 
                                 }
 
+void Modo_Medio(char Jogo[3][3]){
+                                }
+
+void Modo_Dificil(char Jogo[3][3]){
+                                  }
+
 
 
 int Win_Cond(char Jogo[3][3]){
@@ -462,3 +479,78 @@ int Win_Cond(char Jogo[3][3]){
 	    }
 	return 0;
                              }
+
+void Continue_Game(){
+	int ok=0,status;
+	char nome[25];
+	Arquivo Servo;
+	FILE *arq;
+	system("cls");
+	arq=fopen("Salve","r+b");
+	if(arq==NULL){
+		arq=fopen("Salve","w+b");
+	             }
+	fseek(arq,0,0);
+	do{
+		status = fread (&Servo, sizeof (Arquivo), 1,arq);
+if (status == 0) {
+	if (feof(arq) != 0){
+		ok=1;
+		break;
+	                   }
+
+else
+printf("Erro de leitura");
+break;
+}
+else {
+// processamento dos dados lidos
+	printf ("\n%s",Servo.nome);
+
+}
+	  }while(ok!=1);       //Lista os saves
+	ok=0;
+	fseek(arq,0,0);
+	do{
+	printf("\nInforme o nome do jogo que sera carregado: ");
+	fgets(nome,25,stdin);
+	do{
+		status = fread (&Servo, sizeof (Arquivo), 1,arq);
+if (status == 0) {
+	if (feof(arq) != 0){
+		printf("\nJogo nao encontrado!!\n");
+		break;
+	                   }
+
+else
+printf("Erro de leitura");
+break;
+}
+else{
+	if(strcmp(Servo.nome,nome)==0){
+		fseek(arq,sizeof(Arquivo)*-1,SEEK_SET);   //na teoria isso volta o ponteiro para onde eu preciso pra dps mandolo para os preenchimentos
+		switch(Servo.modo){
+		case 1:
+			PvP(arq,Servo.trade,'c');
+			break;
+		case 2:
+			Desafio_Maquina(arq,Servo.trade,Servo.modo-1,'c');
+			break;
+		case 3:
+			Desafio_Maquina(arq,Servo.trade,Servo.modo-1,'c');
+			break;
+		case 4:
+			Desafio_Maquina(arq,Servo.trade,Servo.modo-1,'c');
+			break;
+		default:
+			break;
+		                  }
+		ok=1;
+		break;
+	                              }
+    }
+	  }while(1); //procura o nome do salve
+	  }while(ok!=1);
+	fclose(arq);
+	return;
+                    }
